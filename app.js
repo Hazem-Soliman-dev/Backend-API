@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/authentication.route");
 const productsRoutes = require("./routes/products.route");
+const categoriesRoutes = require("./routes/category.route");
 const cartRoutes = require("./routes/cart.route");
 const ordersRoutes = require("./routes/orders.route");
 const adminDahsboardRoutes = require("./routes/adminDashboard.route");
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use("/api/images", express.static("./images"));
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productsRoutes);
+app.use("/api/category", categoriesRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/order", ordersRoutes);
 app.use("/api/admin", adminDahsboardRoutes);

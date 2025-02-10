@@ -1,5 +1,7 @@
 const Product = require("../models/product.model");
 const mongoose = require("mongoose");
+const fs = require('fs');
+const path = require('path');
 
 exports.getProducts = async (req, res) => {
   // Validate query parameters and pagination parameters
@@ -64,6 +66,8 @@ exports.addProduct = async (req, res) => {
         "The following fields are required and cannot be empty: name, category, price",
     });
   }
+  if (!mongoose.Types.ObjectId.isValid(category))
+    return res.status(400).json({ error: "Invalid category ID" });
 
   // Create new product
   try {
@@ -88,7 +92,16 @@ exports.updateProduct = async (req, res) => {
     return res.status(400).json({ error: "Invalid product ID" });
 
   try {
-    const product = await Product.findByIdAndUpdate(
+    const product = await Product.findById(id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // Remove old image if it exists
+    if (product.image && req.file) {
+      const oldImagePath = `images/${product.image}`;
+      fs.unlinkSync(oldImagePath);
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
       id,
       { $set: { ...req.body, ...(req.file && { image: req.file.filename }) } },
       {
@@ -99,12 +112,11 @@ exports.updateProduct = async (req, res) => {
         Projection: { _id: 0 },
       }
     );
-    if (!product) return res.status(404).json({ error: "Product not found" });
 
     res.status(200).json({
       message: `Product ${id} updated successfully`,
       updated: true,
-      data: product,
+      data: updatedProduct,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -117,6 +129,16 @@ exports.deleteProduct = async (req, res) => {
     return res.status(400).json({ error: "Invalid product ID" });
 
   try {
+    const product = await Product.findOne({ _id: id });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    const imagePath = path.join(__dirname, '../images', product.image);
+    fs.unlink(imagePath, (err) => {
+      if (err) {
+        console.error(err);
+      }
+    });
+
     const result = await Product.updateOne(
       { _id: id, status: { $ne: "deleted" } },
       { status: "deleted" }
