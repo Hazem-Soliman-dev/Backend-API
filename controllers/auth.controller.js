@@ -3,7 +3,7 @@ const hashing = require("../utili/hashing");
 const auth = require("../utili/auth");
 
 exports.registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   const nameRegex = /^[a-zA-Z0-9 ]+$/;
   const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -24,6 +24,9 @@ exports.registerUser = async (req, res) => {
     password &&
       (password.length < 6 || password.length > 15) &&
       "Password must be between 6 and 15 characters",
+    role &&
+      !["User", "Supplier"].includes(role) &&
+      "Invalid role",
   ].filter(Boolean);
 
   if (validationErrors.length > 0) {
@@ -41,6 +44,7 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role || "User",
     });
     res.status(201).json({ message: "User created successfully", data: newUser });
   } catch (err) {

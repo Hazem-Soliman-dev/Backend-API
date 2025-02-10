@@ -33,7 +33,7 @@ const productSchema = new mongoose.Schema(
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: "60f3b4b3b3b3f40015f1f3b3",
+      required: true,
     },
   },
   { timestamps: true }

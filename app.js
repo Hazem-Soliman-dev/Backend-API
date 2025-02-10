@@ -17,6 +17,7 @@ const app = express();
 
 app.use(express.json());
 
+app.use("/api/images", express.static("./images"));
 app.use("/api/auth", authRoutes);
 app.use("/api/product", productsRoutes);
 app.use("/api/cart", cartRoutes);
