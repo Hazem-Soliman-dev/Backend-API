@@ -48,16 +48,29 @@ exports.addOrder = async (req, res) => {
   }
 };
 
-exports.updateOrderStatus = async (req, res) => {
+exports.completeOrder = async (req, res) => {
 	const { id } = req.params;
-	const { status } = req.body;
 	
-	if (!mongoose.Types.ObjectId.isValid(id) || !status) return res.status(400).json({ error: "Invalid order ID or status" });
+	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: "Invalid order ID" });
 
 	try {
-		const order = await Order.findByIdAndUpdate(id, { status }, { runValidators: true, new: true });
+		const order = await Order.findByIdAndUpdate(id, { status: "completed" }, { runValidators: true, new: true, lean: true });
 		if (!order) return res.status(404).json({ error: `Order ${id} not found` });
 
+		res.status(200).json({ message: `Order ${id} updated successfully`, updated: true });
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+};
+
+exports.cancelOrder = async (req, res) => {
+	const { id } = req.params;
+	
+	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: "Invalid order ID" });
+
+	try {
+		const order = await Order.findByIdAndUpdate(id, { status: "cancelled" }, { runValidators: true, new: true });
+		if (!order) return res.status(404).json({ error: `Order ${id} not found` });
 		res.status(200).json({ message: `Order ${id} updated successfully`, updated: true });
 	} catch (error) {
 		res.status(500).json({ error: error.message });

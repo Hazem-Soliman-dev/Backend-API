@@ -7,7 +7,9 @@ const router = express.Router();
 router.get("/", auth.authMW, ordersController.getOrders);
 
 router.post("/", auth.authMW, ordersController.addOrder);
-// update order status (admin only)
-router.patch("/:id", auth.authMW, auth.adminMW, ordersController.updateOrderStatus);
+
+router.patch("/complete/:id", auth.authMW, auth.adminMW, ordersController.completeOrder);
+
+router.patch("/cancel/:id", auth.authMW, ordersController.cancelOrder);
 
 module.exports = router;
