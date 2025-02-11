@@ -1,5 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cookieParser = require('cookie-parser');
+const cors = require("cors");
 
 const authRoutes = require("./routes/authentication.route");
 const productsRoutes = require("./routes/products.route");
@@ -17,6 +19,8 @@ const mongo_url = process.env.MONGODB_URI;
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors());
 
 app.use("/api/images", express.static("./images"));
 app.use("/api/auth", authRoutes);

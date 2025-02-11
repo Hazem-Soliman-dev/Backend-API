@@ -79,8 +79,12 @@ exports.loginUser = async (req, res) => {
     if (!(await hashing.isMatch(password, user.password))) {
       return res.status(400).json({ error: "Incorrect password" });
     }
-    const token = auth.createAccessToken({ id: user._id, role: user.role });
-    return res.status(200).json({ message: "Login successful", token });
+    const payload = { id: user._id, role: user.role };
+    const accessToken = auth.createAccessToken(payload);
+    const refreshToken = auth.createRefreshToken(payload);
+
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: false });
+    return res.status(200).json({ message: "Login successful", accessToken });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
