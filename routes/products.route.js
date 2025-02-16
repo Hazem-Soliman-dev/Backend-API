@@ -10,27 +10,10 @@ router.get("/", productsController.getProducts);
 router.get("/:id", productsController.getProduct);
 
 // admin/supplier only
-router.post(
-  "/",
-  auth.authMW,
-  auth.adminMW || auth.supplierMW,
-  upload.single("image"),
-  productsController.addProduct
-);
+router.post("/", auth.authMW, auth.adminOrSupplierMW, upload.single("image"), productsController.addProduct);
 
-router.patch(
-  "/:id",
-  auth.authMW,
-  auth.adminMW || auth.supplierMW,
-  upload.single("image"),
-  productsController.updateProduct
-);
+router.patch("/:id", auth.authMW, auth.adminOrSupplierMW, upload.single("image"), productsController.updateProduct);
 
-router.delete(
-  "/:id",
-  auth.authMW,
-  auth.adminMW || auth.supplierMW,
-  productsController.deleteProduct
-);
+router.delete("/:id", auth.authMW, auth.adminOrSupplierMW, productsController.deleteProduct);
 
 module.exports = router;

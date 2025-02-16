@@ -6,8 +6,7 @@ const ACCESS_SECRET = process.env.ACCESS_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET;
 const refreshTokens = [];
 
-const createAccessToken = (user) =>
-  jwt.sign(user, ACCESS_SECRET, { expiresIn: "15m" });
+const createAccessToken = (user) => jwt.sign(user, ACCESS_SECRET, { expiresIn: "15m" });
 
 const createRefreshToken = (user) => {
   const refreshToken = jwt.sign(user, REFRESH_SECRET, { expiresIn: "7d" });
@@ -52,6 +51,15 @@ const supplierMW = (req, res, next) => {
   next();
 };
 
+const adminOrSupplierMW = (req, res, next) => {
+  if (req.user?.role !== "Admin" && req.user?.role !== "Supplier") {
+    return res
+      .status(403)
+      .json({ error: "Access denied, admin or supplier privileges required" });
+  }
+  next();
+}
+
 const refreshAccessToken = async (req, res) => {
   const refreshToken =
     req.cookies?.refreshToken ||
@@ -76,7 +84,8 @@ const refreshAccessToken = async (req, res) => {
     });
     res.json({ accessToken });
   } catch (err) {
-    return res.status(403).json({ error: "Invalid refresh token" });
+    console.error('Error verifying refresh token:', err);
+    return res.status(403).json({ error: 'Invalid refresh token' });
   }
 };
 
@@ -91,6 +100,7 @@ module.exports = {
   authMW,
   adminMW,
   supplierMW,
+  adminOrSupplierMW,
   refreshAccessToken,
   logout,
 };
