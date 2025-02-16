@@ -4,7 +4,7 @@ const auth = require("../utili/auth");
 
 const router = express.Router();
 
-router.get("/", auth.authMW, ordersController.getOrders);
+router.get("/:id", auth.authMW, ordersController.getOrders);
 
 router.post("/", auth.authMW, ordersController.addOrder);
 

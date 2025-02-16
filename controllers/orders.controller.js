@@ -3,22 +3,19 @@ const Product = require("../models/product.model");
 const mongoose = require("mongoose");
 
 exports.getOrders = async (req, res) => {
-	const { page = 1, limit = 10, sortBy = "createdAt", order = "desc", ...query } = req.query;
-	const skip = (page - 1) * limit;
+  const userId = req.params.id;
 
-	try {
-		const orders = await Order.find(query, null, { sort: { [sortBy]: order === "asc" ? 1 : -1 } })
-			.skip(skip)
-			.limit(limit)
-			.lean()
-			.exec();
+  try {
+	const orders = await Order.find({ user: userId })
+	  .lean()
+	  .exec();
 
-		if (!orders.length) return res.status(404).json({ error: "Orders not found" });
+	if (!orders.length) return res.status(404).json({ error: "Orders not found" });
 
-		res.json({ data: orders });
-	} catch (error) {
-		res.status(500).json({ error: error.message });
-	}
+	res.json({ data: orders });
+  } catch (error) {
+	res.status(500).json({ error: error.message });
+  }
 };
 
 exports.addOrder = async (req, res) => {
@@ -50,14 +47,19 @@ exports.addOrder = async (req, res) => {
 
 exports.completeOrder = async (req, res) => {
 	const { id } = req.params;
+	const { orderId } = req.body;	
 	
-	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: "Invalid order ID" });
+	const invalidId = !mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(orderId);
+
+    if (!id || !orderId || invalidId) {
+  	  return res.status(400).json({ error: "Invalid user ID or order ID" });
+    }
 
 	try {
-		const order = await Order.findByIdAndUpdate(id, { status: "completed" }, { runValidators: true, new: true, lean: true });
-		if (!order) return res.status(404).json({ error: `Order ${id} not found` });
+		const order = await Order.findByIdAndUpdate(orderId, { status: "completed" }, { runValidators: true, new: true, lean: true });
+		if (!order) return res.status(404).json({ error: `Order ${orderId} not found` });
 
-		res.status(200).json({ message: `Order ${id} updated successfully`, updated: true });
+		res.status(200).json({ message: `Order ${orderId} updated successfully`, updated: true });
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
@@ -65,14 +67,17 @@ exports.completeOrder = async (req, res) => {
 
 exports.cancelOrder = async (req, res) => {
 	const { id } = req.params;
-	
-	if (!mongoose.Types.ObjectId.isValid(id)) return res.status(400).json({ error: "Invalid order ID" });
+  const { orderId } = req.body;
+  const invalidId = !mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(orderId);
 
-	try {
-		const order = await Order.findByIdAndUpdate(id, { status: "cancelled" }, { runValidators: true, new: true });
-		if (!order) return res.status(404).json({ error: `Order ${id} not found` });
-		res.status(200).json({ message: `Order ${id} updated successfully`, updated: true });
-	} catch (error) {
-		res.status(500).json({ error: error.message });
-	}
+  if (!id || !orderId || invalidId) {
+	return res.status(400).json({ error: "Invalid user ID or order ID" });
+  }
+
+  try {
+	await Order.findOneAndUpdate({ _id: orderId, user: id }, { status: "cancelled" }, { runValidators: true, new: true, lean: true });
+	res.status(200).json({ message: `Order ${orderId} updated successfully`, updated: true });
+  } catch (error) {
+	res.status(500).json({ error: error.message });
+  }
 };

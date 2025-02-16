@@ -19,7 +19,9 @@ const authMW = async (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (!authHeader)  res.status(401).json({ error: "Access denied, token missing" });
 
-  const token = authHeader.replace("Bearer ", "");
+  const token = authHeader?.replace("Bearer ", "");
+
+  if (!token) return res.status(401).json({ error: "Access denied, token missing" });
 
   try {
     req.user = await jwt.verify(token, ACCESS_SECRET);
